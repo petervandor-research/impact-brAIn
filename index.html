@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>impact brAIn</title>
+<meta name="description" content="impact brAIn: an AI-native impact consultancy with scientific oversight. An MVP by Peter Vandor, part of his teaching at WU Vienna.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* Layout: a dark lab console. Thin grid, one live network in the hero, mono labels for system states; human checkpoints in warm amber against cool AI accents. Single dark look by design. */
+:root{
+  color-scheme:dark;
+  --bg:#070A12; --bg2:#0C1222; --panel:#0E1528; --line:#1F2A44; --line2:#2C3A5C;
+  --ink:#E8ECF6; --muted:#97A3BB; --a1:#93A6FF; --a2:#5FE3C6; --human:#FFB57D; --focus:#B9C5FF;
+  --sans:'Geist','Segoe UI',Helvetica,Arial,sans-serif;
+  --mono:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;padding-inline:20px;padding-block:0;
+  background-image:linear-gradient(var(--bg2) 1px,transparent 1px),linear-gradient(90deg,var(--bg2) 1px,transparent 1px);background-size:56px 56px;background-attachment:fixed}
+.wrap{max-width:1120px;margin:0 auto}
+.narrow{max-width:760px}
+h1,h2,h3{font-weight:600;line-height:1.08;letter-spacing:-0.025em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,5.6vw,4.4rem);font-weight:500}
+h2{font-size:clamp(1.8rem,3.6vw,2.7rem);font-weight:500}
+h3{font-size:1.2rem;letter-spacing:-0.01em}
+p{margin:0}
+a{color:var(--a1)}
+.grad{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mono{font-family:var(--mono)}
+.label{font-family:var(--mono);font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.label.ai{color:var(--a2)}
+.label.hu{color:var(--human)}
+.lead{font-size:1.15rem;color:var(--muted);max-width:60ch}
+section{padding-block:88px;border-top:1px solid var(--line)}
+section > .wrap{display:flex;flex-direction:column;gap:30px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-inline:-20px;padding-inline:20px;background:rgba(7,10,18,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;justify-content:space-between;padding-block:14px}
+.brand{font-size:1.35rem;font-weight:600;color:var(--ink);text-decoration:none;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--a2);box-shadow:0 0 12px var(--a2)}
+.nav{display:flex;flex-wrap:wrap;gap:4px 22px;font-size:.95rem}
+.nav a{color:var(--muted);text-decoration:none}
+.nav a:hover,.nav a[aria-current="page"]{color:var(--ink)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;border:1px solid transparent;background:linear-gradient(90deg,var(--a1),var(--a2));color:#06101A;font:600 1rem var(--sans);text-decoration:none;cursor:pointer}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--a1)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* hero */
+.hero{position:relative;padding-block:72px 88px}
+#net{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.75}
+.hero .wrap{position:relative;display:flex;flex-wrap:wrap;gap:48px;align-items:center}
+.hero-main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:26px}
+.console{flex:1 1 360px;min-width:0;background:rgba(14,21,40,.92);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;box-shadow:0 30px 80px -30px rgba(95,227,198,.25)}
+.console .bar{display:flex;gap:7px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.console .bar i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+.console .bar span{margin-left:8px}
+.log{margin:0;padding:16px 18px;font-family:var(--mono);font-size:.82rem;line-height:1.85;white-space:pre-wrap;overflow-x:auto;color:var(--muted)}
+.log .h{color:var(--human)} .log .a{color:var(--a2)} .log .c{color:var(--ink)}
+.cursor{display:inline-block;width:8px;height:1em;background:var(--a2);vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* disclosure */
+.disclosure{border:1px solid var(--human);border-radius:var(--r);padding:26px 28px;display:flex;flex-wrap:wrap;gap:16px 40px;background:rgba(255,181,125,.06)}
+.disclosure > div{flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.disclosure p{color:var(--ink)}
+
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.pipe{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.pipe{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:12px}
+.stage.human{border-color:rgba(255,181,125,.5)}
+.stage .who{display:flex;flex-direction:column;gap:8px;font-size:.94rem;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid currentColor;width:fit-content}
+.tag.ai{color:var(--a2)} .tag.hu{color:var(--human)}
+
+/* modules */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.mod{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s}
+.mod:hover{border-color:var(--line2)}
+.mod.on{border-color:var(--a2);box-shadow:0 0 0 1px var(--a2),0 0 40px -12px var(--a2)}
+.mod .head{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.mod .what{color:var(--muted);font-size:.97rem}
+.mod dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.92rem}
+.mod dt{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding-top:4px;color:var(--a2)}
+.mod dt.h{color:var(--human)}
+.mod dd{margin:0}
+.mod .spacer{flex:1}
+.toggle{align-self:flex-start;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--ink);font:500 .93rem var(--sans);cursor:pointer}
+.toggle:hover{border-color:var(--a2)}
+.toggle[aria-pressed="true"]{background:var(--a2);border-color:var(--a2);color:#06101A;font-weight:600}
+
+/* self-test */
+.ioio{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+.ioio b{color:var(--ink);font-weight:500;border:1px solid var(--line2);border-radius:8px;padding:6px 10px}
+form.test{display:flex;flex-direction:column;gap:16px}
+fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:20px 22px;margin:0;display:flex;flex-direction:column;gap:12px}
+legend{padding:0 6px;font-weight:500}
+legend .label{display:block;margin-bottom:4px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;width:1px;height:1px}
+.opt label{display:flex;align-items:center;min-height:46px;padding:10px 16px;border:1px solid var(--line2);border-radius:10px;cursor:pointer;font-size:.97rem;color:var(--ink)}
+.opt label:hover{border-color:var(--a1)}
+.opt input:checked + label{border-color:var(--a2);background:rgba(95,227,198,.08)}
+.opt input:focus-visible + label{outline:2px solid var(--focus);outline-offset:2px}
+.result{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:18px}
+.bars{display:flex;flex-direction:column;gap:12px}
+.bar{display:grid;grid-template-columns:110px 1fr auto;gap:14px;align-items:center;font-size:.95rem}
+.track{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,var(--a1),var(--a2));border-radius:5px}
+.score{font-family:var(--mono);font-size:.84rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* AI demo + forms */
+textarea,input[type=text],input[type=email],select{width:100%;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:12px 14px}
+textarea{min-height:150px;resize:vertical}
+textarea::placeholder,input::placeholder{color:#6F7A92}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label,.field .q{font-weight:500;font-size:.97rem}
+.hint{font-size:.88rem;color:var(--muted)}
+.draft{background:var(--panel);border:1px solid var(--a2);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:20px}
+.stamp{align-self:flex-start;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--human);border:1px solid var(--human);border-radius:4px;padding:3px 8px}
+.chain{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.chain{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.chain{grid-template-columns:1fr}}
+.link{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;font-size:.93rem}
+.link .ind{font-size:.85rem;color:var(--muted);border-top:1px dashed var(--line2);padding-top:8px}
+.status{font-size:.95rem;color:var(--muted)}
+form.intake{display:flex;flex-direction:column;gap:20px;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:30px}
+.two{display:flex;flex-wrap:wrap;gap:20px}
+.two > .field{flex:1 1 260px;min-width:0}
+.checks{display:flex;flex-direction:column;gap:10px}
+.cb{display:flex;gap:10px;align-items:flex-start;font-size:.97rem}
+.cb input{width:20px;height:20px;margin-top:3px;accent-color:var(--a2);flex:none}
+.error{color:var(--human);font-weight:500;font-size:.95rem}
+.ok{background:rgba(95,227,198,.07);border:1px solid var(--a2);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:14px}
+.fallback textarea{font-family:var(--mono);font-size:.82rem;min-height:220px}
+.mail{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.mail code{font-family:var(--mono);font-size:.92rem;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;user-select:all}
+
+/* faq */
+details{border-bottom:1px solid var(--line);padding-block:18px}
+summary{cursor:pointer;font-weight:500;font-size:1.05rem}
+details p{margin-top:10px;color:var(--muted);max-width:68ch}
+
+/* about */
+.about-hero{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;padding-block:64px 24px}
+.portrait{flex:0 0 180px;height:180px;border-radius:24px;border:1px solid var(--line2);background:radial-gradient(circle at 30% 30%,rgba(147,166,255,.35),transparent 60%),radial-gradient(circle at 70% 75%,rgba(95,227,198,.3),transparent 55%),var(--panel);display:flex;align-items:center;justify-content:center;font-size:3.6rem;font-weight:500;letter-spacing:-.04em}
+.about-main{flex:999 1 480px;min-width:0;display:flex;flex-direction:column;gap:18px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:6px}
+.fact .n{font-size:2.2rem;font-weight:500;letter-spacing:-.03em;line-height:1}
+.cv{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.cv .blk{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:12px}
+.cv ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;color:var(--muted)}
+.cv li b{color:var(--ink);font-weight:500}
+
+/* inbox */
+.inbox{background:var(--panel);border:1px solid var(--human);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:16px}
+.req{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px;font-size:.95rem}
+.req .meta{color:var(--muted)}
+.pill{display:inline-block;font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:4px;border:1px solid var(--line2)}
+.req select{width:auto;min-height:40px;padding:4px 10px}
+footer{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem;display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>impact br<span class="grad">AI</span>n</a>
+    <nav class="nav" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#modules">Modules</a>
+      <a href="#selftest">Self-test</a>
+      <a href="#try">Try the AI</a>
+      <a href="#about" id="navAbout">About Peter</a>
+      <a href="#start">Start</a>
+    </nav>
+  </div>
+</header>
+
+<main id="home">
+  <div class="hero" id="top">
+    <canvas id="net" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <div class="hero-main">
+        <p class="label ai">AI-native impact consultancy · scientific oversight</p>
+        <h1>Your impact, mapped, measured and documented. <span class="grad">Drafted by AI.</span> Checked by a researcher.</h1>
+        <p class="lead">For social enterprises and impact start-ups that need a clear impact model, a workable set of indicators and a credible report, without months of consulting.</p>
+        <div class="row">
+          <a class="btn" href="#selftest">Take the 3-minute self-test</a>
+          <a class="btn ghost" href="#about">Who checks the AI?</a>
+        </div>
+      </div>
+      <div class="console" role="img" aria-label="Example run: a kick-off conversation, then AI drafts alternating with human reviews, ending in a signed-off report">
+        <div class="bar"><i></i><i></i><i></i><span class="label">impact-brain · example run</span></div>
+<pre class="log"><span class="c">$ impact-brain run --venture "your social enterprise"</span>
+<span class="h">[human]</span> kick-off conversation · scope agreed
+<span class="a">[ai]   </span> drafting IOOI model ............ done
+<span class="h">[human]</span> review · 3 assumptions flagged
+<span class="a">[ai]   </span> proposing outcome indicators ... done
+<span class="h">[human]</span> review · baseline added
+<span class="a">[ai]   </span> drafting impact report ......... done
+<span class="h">[human]</span> claims check · signed off ✓
+<span class="c">$ </span><span class="cursor"></span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="disclosure" role="note" aria-labelledby="disc-h">
+      <div>
+        <p class="label hu" id="disc-h">Read this first</p>
+        <p><b>impact brAIn is an MVP and part of my teaching at WU Vienna.</b> Right now it is me, Peter Vandor, working with Claude, an AI model by Anthropic.</p>
+      </div>
+      <div>
+        <p class="label hu">What that means for you</p>
+        <p>Claude drafts. I review, correct and sign off every output before it reaches you. Every engagement starts with a conversation between us to explore the scope.</p>
+      </div>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <p class="label">How it works</p>
+      <h2>A human conversation first. Then AI drafts, each one checked.</h2>
+      <div class="pipe">
+        <div class="stage human">
+          <span class="tag hu">Human</span>
+          <p class="label">00 · Conversation</p>
+          <h3>Explore the scope</h3>
+          <div class="who"><span>A call with me: your mission, your audience for impact data, what you already have, and which modules make sense.</span></div>
+        </div>
+        <div class="stage">
+          <span class="tag ai">AI + review</span>
+          <p class="label">01 · Map</p>
+          <h3>What changes, for whom</h3>
+          <div class="who"><span>AI drafts the IOOI model and stakeholder map from your documents.</span><span>I check the logic, the target group and the assumptions.</span></div>
+        </div>
+        <div class="stage">
+          <span class="tag ai">AI + review</span>
+          <p class="label">02 · Measure</p>
+          <h3>How you will know</h3>
+          <div class="who"><span>AI proposes indicators, survey questions and a data plan.</span><span>I check validity, feasibility and the baseline.</span></div>
+        </div>
+        <div class="stage">
+          <span class="tag ai">AI + sign-off</span>
+          <p class="label">03 · Document</p>
+          <h3>What you can claim</h3>
+          <div class="who"><span>AI drafts the report and screens every claim against your data.</span><span>I sign off and flag anything that overclaims.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modules">
+    <div class="wrap">
+      <p class="label">Modules</p>
+      <h2>Pick what you need</h2>
+      <p class="lead">Each module stands on its own and starts with our scoping conversation. Add modules to your request here, or let the self-test suggest a combination.</p>
+      <div class="grid" id="moduleGrid"></div>
+    </div>
+  </section>
+
+  <section id="selftest">
+    <div class="wrap narrow">
+      <p class="label">Self-test</p>
+      <h2>Where does your impact data stop?</h2>
+      <p class="lead">Eight questions along the simplest impact model there is. Pick the answer closest to your current practice. Your answers stay in your browser unless you send them with a request.</p>
+      <div class="ioio" aria-label="The IOOI model: Input, Output, Outcome, Impact"><b>Input</b>→<b>Output</b>→<b>Outcome</b>→<b>Impact</b></div>
+      <form class="test" id="testForm" novalidate></form>
+      <div id="testResult" hidden></div>
+    </div>
+  </section>
+
+  <section id="try">
+    <div class="wrap narrow">
+      <p class="label">Try the AI</p>
+      <h2>Your venture as an IOOI chain, in seconds</h2>
+      <p class="lead">Describe your venture in a few sentences. A small, fast Claude model sketches Input, Output, Outcome and Impact, with one indicator for each. This sketch has not been checked by a human; in the real service it would be.</p>
+      <div class="field">
+        <label for="aiInput">Your venture in a few sentences</label>
+        <textarea id="aiInput" maxlength="1200" placeholder="Example: We run a café in Vienna where people with learning disabilities work alongside trained baristas. Guests pay normal prices; revenue funds wages and job coaching."></textarea>
+        <span class="hint" id="aiCount">0 / 1200 characters</span>
+      </div>
+      <div class="row">
+        <button class="btn" type="button" id="aiRun">Sketch my IOOI chain</button>
+        <button class="btn ghost" type="button" id="aiStop" hidden>Stop</button>
+        <span class="status" id="aiStatus" role="status"></span>
+      </div>
+      <div id="aiOut" hidden></div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="wrap narrow">
+      <p class="label">Start</p>
+      <h2>Start your impact brAIn journey</h2>
+      <p class="lead">Tell me who you are and what you need. I read every request myself and reply with times for our scoping conversation.</p>
+      <form class="intake" id="intake" novalidate>
+        <div class="two">
+          <div class="field"><label for="fName">Your name</label><input type="text" id="fName" autocomplete="name"></div>
+          <div class="field"><label for="fOrg">Organisation</label><input type="text" id="fOrg" autocomplete="organization"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="fEmail">Email</label><input type="email" id="fEmail" autocomplete="email"></div>
+          <div class="field"><label for="fStage">Stage</label>
+            <select id="fStage">
+              <option value="Idea">Idea</option>
+              <option value="Pilot" selected>Pilot or first customers</option>
+              <option value="Growth">Growing</option>
+              <option value="Established">Established</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <span class="q" id="modsLabel">Modules you are interested in</span>
+          <div class="checks" id="formModules" role="group" aria-labelledby="modsLabel"></div>
+        </div>
+        <div class="field"><label for="fMsg">What should I know?</label><textarea id="fMsg" placeholder="Your mission, what you already measure, who asks for impact data (funders, investors, public bodies), deadlines."></textarea></div>
+        <div class="checks">
+          <label class="cb"><input type="checkbox" id="fAttach"><span>Attach my self-test result and my IOOI sketch, if I made them on this page.</span></label>
+          <label class="cb"><input type="checkbox" id="fConsent"><span>I understand that impact brAIn is an MVP, that my input is processed with Claude (Anthropic), and that Peter Vandor reviews every output before I receive it.</span></label>
+        </div>
+        <p class="error" id="fError" role="alert" hidden></p>
+        <div class="row"><button class="btn" type="submit" id="fSubmit">Send my request</button></div>
+      </form>
+      <div id="sent" hidden></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap narrow">
+      <p class="label">Transparency</p>
+      <h2>How this really works</h2>
+      <div>
+        <details><summary>Who is behind impact brAIn?</summary><p>Me, Peter Vandor. I direct the Center for Social Entrepreneurship and Social Innovation at WU Vienna and have worked on impact measurement for social enterprises for more than a decade. impact brAIn is an MVP and part of my teaching at WU Vienna: an experiment to test whether an AI-first, human-checked process can make good impact work affordable for young social enterprises.</p></details>
+        <details><summary>What does the AI do, and what do I do?</summary><p>Claude reads your material and drafts: IOOI models, indicator sets, survey questions, report text, and a screen of your impact claims. I decide what goes out. I correct drafts, reject weak ones, and add judgement on research quality, for example whether a claimed effect is backed by a baseline or a comparison.</p></details>
+        <details><summary>Does it start with a conversation?</summary><p>Yes, always. Every engagement starts with a call to explore the scope: what you need, who will use the results, and which modules fit.</p></details>
+        <details><summary>What happens to my data?</summary><p>Requests are visible only to me. Your input is processed with Claude, a model by Anthropic. Please do not send personal data about your beneficiaries; aggregated or anonymised information is enough for every module.</p></details>
+        <details><summary>What does it cost?</summary><p>impact brAIn is in a pilot phase. Scope and any fee are agreed with you in writing before work starts. Sending a request commits you to nothing.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="inboxSec" hidden>
+    <div class="wrap">
+      <div class="inbox">
+        <p class="label hu">Visible only to you · Backend</p>
+        <h2>Request inbox</h2>
+        <p class="status" id="inboxStatus">Loading requests…</p>
+        <div id="inboxList"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<main id="aboutPage" hidden>
+  <div class="wrap">
+    <div class="about-hero">
+      <div class="portrait" aria-hidden="true"><span class="grad">PV</span></div>
+      <div class="about-main">
+        <p class="label hu">The human in the loop</p>
+        <h1>Peter Vandor</h1>
+        <p class="lead">Director of the Center for Social Entrepreneurship and Social Innovation at WU Vienna. Researcher, educator and practitioner in social entrepreneurship and impact measurement. Every impact brAIn output passes my desk before it reaches you.</p>
+        <div class="row">
+          <a class="btn" href="#start">Start a conversation</a>
+          <a class="btn ghost" href="https://at.linkedin.com/in/peter-vandor-1010941" target="_blank" rel="noopener">LinkedIn profile</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <section>
+    <div class="wrap">
+      <div class="facts">
+        <div class="fact"><span class="n grad">15+</span><span class="hint">countries reached by the Social Impact Award, which I founded</span></div>
+        <div class="fact"><span class="n grad">50+</span><span class="hint">collaboration projects on research, capacity building and impact assessment</span></div>
+        <div class="fact"><span class="n grad">2015</span><span class="hint">since then, scientific monitoring of the Social Impact Award</span></div>
+        <div class="fact"><span class="n grad">1st</span><span class="hint">academic course on social entrepreneurship in Austria, which I initiated</span></div>
+      </div>
+      <div class="cv">
+        <div class="blk">
+          <p class="label ai">Roles</p>
+          <ul>
+            <li><b>Director</b>, Center for Social Entrepreneurship and Social Innovation (SESI), WU Vienna</li>
+            <li><b>Founder and academic director</b>, Social Impact Award, a programme for young social entrepreneurs across Europe, Central Asia and East Africa</li>
+            <li><b>Academic director</b>, NGO Academy, run with ERSTE Foundation, since 2013</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <p class="label ai">Impact measurement in practice</p>
+          <ul>
+            <li><b>Austrian Social Enterprise Monitor</b>, the national survey of social enterprises, since 2021</li>
+            <li><b>Impact evaluations</b> of the Bosch Alumni Network for Robert Bosch Stiftung</li>
+            <li><b>Impact Hub</b> global research partnership since 2013</li>
+            <li>Current research on <b>questionable impact measurement practices</b>, the basis of the claims check</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <p class="label ai">Research and recognition</p>
+          <ul>
+            <li>Publications in the <b>Journal of Business Venturing</b>, <b>Journal of World Business</b> and <b>Harvard Business Review</b></li>
+            <li><b>Best Paper Award</b>, Impact Investing Days 2023 (ESADE), with co-authors</li>
+            <li><b>SCANCOR visiting scholar</b>, Stanford University, 2017</li>
+            <li>Nominated <b>Global Shaper</b> by the World Economic Forum, 2012</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <p class="label ai">Partners I have worked with</p>
+          <ul>
+            <li>UNDP and the European Commission</li>
+            <li>ERSTE Foundation and Robert Bosch Stiftung</li>
+            <li>CERN and Austrian federal ministries</li>
+          </ul>
+        </div>
+      </div>
+      <div class="disclosure" role="note">
+        <div>
+          <p class="label hu">Why this matters for impact brAIn</p>
+          <p>AI is good at drafting impact models and reports. It is also good at producing confident claims nobody can back up. My job in impact brAIn is the second part: checking that what you claim is what your data supports.</p>
+        </div>
+        <div>
+          <p class="label hu">Contact</p>
+          <div class="mail"><code>peter.vandor@wu.ac.at</code><code>peter.vandor@gmail.com</code></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="wrap">
+  <footer>
+    <span>impact br<span class="grad">AI</span>n · an MVP by Peter Vandor, part of my teaching at WU Vienna</span>
+    <span>Drafted with Claude. Checked by a human.</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const $ = (s, r) => (r || document).querySelector(s);
+  const EMAILS = ['peter.vandor@wu.ac.at', 'peter.vandor@gmail.com'];
+  function el(tag, props, ...kids){
+    const n = document.createElement(tag);
+    if (props) for (const k in props){
+      const v = props[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') n.className = v;
+      else if (k === 'text') n.textContent = v;
+      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) n.append(c.nodeType ? c : String(c));
+    return n;
+  }
+
+  /* ---------- routing: home vs about ---------- */
+  const home = $('#home'), about = $('#aboutPage'), navAbout = $('#navAbout');
+  function route(){
+    const h = location.hash.replace('#', '');
+    const isAbout = h === 'about';
+    home.hidden = isAbout; about.hidden = !isAbout;
+    navAbout.toggleAttribute('aria-current', isAbout);
+    if (isAbout) { navAbout.setAttribute('aria-current', 'page'); window.scrollTo(0, 0); }
+    else if (h) { const t = document.getElementById(h); if (t) requestAnimationFrame(() => t.scrollIntoView()); }
+  }
+  window.addEventListener('hashchange', route);
+  route();
+  function goStart(){ if (location.hash === '#start') route(); else location.hash = 'start'; }
+
+  /* ---------- modules ---------- */
+  const MODULES = [
+    { id:'model', stage:'Map', name:'IOOI model', what:'Your logic from Input to Output, Outcome and Impact, plus the assumptions that connect them.', ai:'Drafts the model from your documents and our conversation.', human:'Checks the logic and the assumptions.' },
+    { id:'stake', stage:'Map', name:'Stakeholder and outcome map', what:'Who is affected, positively or negatively, and which changes matter most to them.', ai:'Drafts the map and suggests outcomes per group.', human:'Checks for blind spots, including negative effects.' },
+    { id:'ind', stage:'Measure', name:'Indicator set', what:'A small set of output and outcome indicators, aligned with common frameworks such as the SDGs and IRIS+.', ai:'Proposes indicators with definitions and data sources.', human:'Checks validity and what you can realistically collect.' },
+    { id:'data', stage:'Measure', name:'Data collection kit', what:'Survey questions, a sampling plan and a baseline, ready for your team to use.', ai:'Writes questionnaires and a step-by-step plan.', human:'Checks question quality and the baseline design.' },
+    { id:'report', stage:'Document', name:'Impact report', what:'A structured report for funders and investors, for example following the Social Reporting Standard.', ai:'Drafts the report from your model and data.', human:'Edits and signs off.' },
+    { id:'claims', stage:'Document', name:'Claims check (QIMPs)', what:'A scientific review of your impact claims for questionable impact measurement practices: overclaiming, missing baselines, attribution gaps, selective reporting.', ai:'Screens every claim against your data.', human:'Gives the verdict and suggests defensible wording.' }
+  ];
+  const selected = new Set();
+  const grid = $('#moduleGrid'), formMods = $('#formModules');
+  MODULES.forEach((m, i) => {
+    const btn = el('button', { type:'button', class:'toggle', 'aria-pressed':'false', onclick: () => setModule(m.id, !selected.has(m.id)) }, 'Add to request');
+    btn.dataset.mod = m.id;
+    grid.append(el('article', { class:'mod', id:'mod-' + m.id },
+      el('div', { class:'head' }, el('h3', { text:m.name }), el('span', { class:'label', text:m.stage })),
+      el('p', { class:'what', text:m.what }),
+      el('dl', null, el('dt', { text:'AI' }), el('dd', { text:m.ai }), el('dt', { class:'h', text:'Peter' }), el('dd', { text:m.human })),
+      el('div', { class:'spacer' }),
+      btn));
+    const cb = el('input', { type:'checkbox', id:'fm-' + m.id, onchange: e => setModule(m.id, e.target.checked) });
+    formMods.append(el('label', { class:'cb', for:'fm-' + m.id }, cb, el('span', null, m.name + ' · ' + m.stage)));
+  });
+  function setModule(id, on){
+    on ? selected.add(id) : selected.delete(id);
+    const b = grid.querySelector('[data-mod="' + id + '"]');
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.textContent = on ? 'Added ✓' : 'Add to request';
+    $('#mod-' + id).classList.toggle('on', on);
+    $('#fm-' + id).checked = on;
+  }
+
+  /* ---------- self-test along IOOI (answers describe practice; scores stay hidden) ---------- */
+  const LEVELS = { input:'Input', output:'Output', outcome:'Outcome', impact:'Impact' };
+  const QS = [
+    { l:'input', q:'A funder asks what one year of your work costs. What do you send?', o:[['A cost breakdown per programme or service', 2], ['We would need to put that together first', 0], ['Our overall annual budget', 1]] },
+    { l:'input', q:'Besides money, which resources do you keep track of?', o:[['Headcount, roughly', 1], ['Staff and volunteer hours per activity', 2], ['Nothing systematic', 0]] },
+    { l:'output', q:'How many people did you reach last month?', o:[['I would have to ask around', 0], ['I could look it up within a minute', 2], ['I could estimate it', 1]] },
+    { l:'output', q:'Where do your activity numbers live?', o:[['In one shared sheet or system', 2], ['In each person’s own files', 0], ['Collected once a year for reports', 1]] },
+    { l:'outcome', q:'How do you describe what changes for the people you work with?', o:[['With stories and examples', 1], ['By listing what we did for them', 0], ['With one or two changes we track over time', 2]] },
+    { l:'outcome', q:'Where does that information come from?', o:[['Feedback from our staff or partners', 1], ['Short surveys or data from participants themselves', 2], ['We do not collect it yet', 0]] },
+    { l:'impact', q:'Would these changes have happened without you anyway?', o:[['We have not looked into this', 0], ['We compare with a reference group or published data', 2], ['We have a plausible argument, but no data', 1]] },
+    { l:'impact', q:'What happens with your impact information?', o:[['It goes into reports and applications', 1], ['It informs what we change, scale or stop', 2], ['Not much yet', 0]] }
+  ];
+  const tf = $('#testForm');
+  QS.forEach((q, i) => {
+    tf.append(el('fieldset', null,
+      el('legend', null, el('span', { class:'label', text:LEVELS[q.l] + ' · ' + (i + 1) + ' of 8' }), q.q),
+      el('div', { class:'opts' }, q.o.map((o, v) => el('div', { class:'opt' },
+        el('input', { type:'radio', name:'q' + i, id:'q' + i + '_' + v, value:String(v) }),
+        el('label', { for:'q' + i + '_' + v, text:o[0] }))))));
+  });
+  const tErr = el('p', { class:'error', role:'alert', hidden:true });
+  tf.append(tErr, el('div', { class:'row' }, el('button', { class:'btn', type:'submit' }, 'Show my IOOI profile')));
+  let testResult = null;
+  tf.addEventListener('submit', e => {
+    e.preventDefault();
+    const pick = QS.map((_, i) => { const c = tf.querySelector('input[name="q' + i + '"]:checked'); return c ? Number(c.value) : null; });
+    const missing = pick.findIndex(a => a === null);
+    if (missing >= 0){ tErr.textContent = 'Please answer question ' + (missing + 1) + '.'; tErr.hidden = false; tf.querySelector('input[name="q' + missing + '"]').focus(); return; }
+    tErr.hidden = true;
+    const scores = { input:0, output:0, outcome:0, impact:0 };
+    QS.forEach((q, i) => scores[q.l] += q.o[pick[i]][1]);
+    const rec = new Set();
+    if (scores.input + scores.output <= 4) rec.add('ind');
+    if (scores.outcome <= 2) { rec.add('model'); rec.add('ind'); rec.add('data'); }
+    if (scores.impact <= 2) { rec.add('model'); rec.add('claims'); }
+    if (scores.impact >= 3 || scores.outcome >= 3) rec.add('report');
+    if (!rec.size) rec.add('claims');
+    const levels = Object.keys(LEVELS);
+    const stop = levels.find(k => scores[k] <= 2);
+    testResult = { scores, recommended: MODULES.map(m => m.id).filter(id => rec.has(id)) };
+    const box = $('#testResult'); box.replaceChildren(); box.hidden = false;
+    box.append(el('div', { class:'result', 'aria-live':'polite' },
+      el('h3', { text:'Your IOOI profile' }),
+      el('div', { class:'bars' }, levels.map(k => el('div', { class:'bar' },
+        el('span', { text:LEVELS[k] }),
+        el('div', { class:'track', role:'img', 'aria-label': LEVELS[k] + ': ' + scores[k] + ' of 4' }, el('div', { class:'fill', style:'width:' + (scores[k] / 4 * 100) + '%' })),
+        el('span', { class:'score', text:scores[k] + ' / 4' })))),
+      el('p', { text: stop ? 'Your data gets thin at the ' + LEVELS[stop].toLowerCase() + ' level. That is where most young social enterprises are, and where impact brAIn starts.' : 'You are well along the chain. The claims check is the natural next step.' }),
+      el('p', { text:'Suggested modules: ' + testResult.recommended.map(id => MODULES.find(m => m.id === id).name).join(', ') + '.' }),
+      el('p', { class:'hint', text:'A rough orientation from eight questions, not an assessment.' }),
+      el('div', { class:'row' }, el('button', { class:'btn', type:'button', onclick: () => { testResult.recommended.forEach(id => setModule(id, true)); $('#fAttach').checked = true; goStart(); } }, 'Add these to my request'))));
+  });
+
+  /* ---------- IOOI sketch via the quick (smallest) Claude model ---------- */
+  const aiIn = $('#aiInput'), aiRun = $('#aiRun'), aiStop = $('#aiStop'), aiStatus = $('#aiStatus'), aiOut = $('#aiOut');
+  aiIn.addEventListener('input', () => { $('#aiCount').textContent = aiIn.value.length + ' / 1200 characters'; });
+  let sample = null, ctl = null, aiDraft = null;
+  const OFF = 'The IOOI sketch runs when this page is opened while signed in to Claude. Everything else works anywhere.';
+  aiRun.disabled = true;
+  if (window.claude && window.claude.use) {
+    aiStatus.textContent = 'Connecting…';
+    window.claude.use('sample').then(s => { sample = s; aiRun.disabled = !s; aiStatus.textContent = s ? '' : OFF; }).catch(() => { aiStatus.textContent = OFF; });
+  } else { const t = document.getElementById('try'); if (t) t.hidden = true; const n = document.querySelector('.nav a[href="#try"]'); if (n) n.hidden = true; }
+
+  const PROMPT = 'Sketch the IOOI chain (Input, Output, Outcome, Impact) for the social venture below. Keep it short and concrete. Do not invent numbers.\n'
+    + 'Input = resources used. Output = what is delivered, countable. Outcome = change for the target group. Impact = long-term change beyond what would have happened anyway.\n'
+    + 'Reply with only JSON: {"input":{"text":string,"indicator":string},"output":{"text":string,"indicator":string},"outcome":{"text":string,"indicator":string},"impact":{"text":string,"indicator":string},"check":string}\n'
+    + 'Each "text" at most 25 words. "check" = the one question a reviewer should ask the founders. Use the language of the description.\n\nVenture:\n';
+
+  aiStop.addEventListener('click', () => ctl && ctl.abort());
+  aiRun.addEventListener('click', async () => {
+    const txt = aiIn.value.trim();
+    if (txt.length < 60){ aiStatus.textContent = 'Please write two or three sentences (at least 60 characters).'; aiIn.focus(); return; }
+    if (!sample) return;
+    ctl = new AbortController();
+    aiRun.disabled = true; aiStop.hidden = false; aiStatus.textContent = 'Sketching…';
+    try {
+      const d = await sample.json(PROMPT + txt.slice(0, 1200), { signal: ctl.signal, modelTier:'quick' });
+      if (!d || typeof d !== 'object') throw { code:'invalid_json' };
+      aiDraft = { input: txt, model: d, at: new Date().toISOString() };
+      renderDraft(d); aiStatus.textContent = 'Done.';
+    } catch (e) {
+      const c = e && e.code;
+      const off = c === 'not_granted' || c === 'sampling_disabled' || c === 'not_declared' || c === 'capability_disabled';
+      aiStatus.textContent = c === 'cancelled' ? 'Stopped.' : off ? OFF
+        : c === 'rate_limited' ? 'Too many requests right now. Please try again in a few minutes.'
+        : c === 'invalid_json' ? 'The sketch came back in an unexpected format. Please try again.'
+        : c === 'refused' ? 'Claude declined this description. Please rephrase it.'
+        : 'Something went wrong. Please try again.';
+      if (off) sample = null;
+    } finally { aiStop.hidden = true; aiRun.disabled = !sample; }
+  });
+  function renderDraft(d){
+    aiOut.replaceChildren(); aiOut.hidden = false;
+    const cell = k => { const v = d[k] || {}; return el('div', { class:'link' }, el('span', { class:'label ai', text:LEVELS[k] }), el('p', { text:String(v.text || '') }), el('p', { class:'ind', text:'Indicator: ' + String(v.indicator || '') })); };
+    aiOut.append(el('div', { class:'draft', 'aria-live':'polite' },
+      el('span', { class:'stamp', text:'AI sketch · not yet checked by a human' }),
+      el('div', { class:'chain' }, Object.keys(LEVELS).map(cell)),
+      d.check ? el('p', null, el('span', { class:'label hu', text:'A reviewer would ask · ' }), String(d.check)) : null,
+      el('div', { class:'row' }, el('button', { class:'btn', type:'button', onclick: () => { $('#fAttach').checked = true; setModule('model', true); goStart(); } }, 'Have this sketch checked'))));
+  }
+
+  /* ---------- intake: stored where the page can store, else copy-and-email ---------- */
+  let db = null, uid = null;
+  const dbReady = (window.claude && window.claude.use) ? Promise.all([window.claude.use('db'), window.claude.use('user')]).then(async ([d, u]) => {
+    db = d;
+    if (u) { try { uid = await u.id(); } catch (e) { uid = null; } }
+    if (u && db && u.isOwner && u.isOwner()) startInbox();
+  }).catch(() => {}) : Promise.resolve();
+
+  const form = $('#intake'), fErr = $('#fError');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = id => $(id).value.trim();
+    const rec = { name: v('#fName'), org: v('#fOrg'), email: v('#fEmail'), stage: $('#fStage').value, modules: [...selected], message: v('#fMsg') };
+    const problems = [];
+    if (!rec.name) problems.push('your name');
+    if (!rec.org) problems.push('your organisation');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rec.email)) problems.push('a valid email');
+    if (problems.length){ fErr.textContent = 'Please add ' + problems.join(', ') + '.'; fErr.hidden = false; return; }
+    if (!$('#fConsent').checked){ fErr.textContent = 'Please confirm the MVP note before sending.'; fErr.hidden = false; $('#fConsent').focus(); return; }
+    fErr.hidden = true;
+    if ($('#fAttach').checked){ rec.selftest = testResult; rec.aiDraft = aiDraft; }
+    const now = new Date().toISOString();
+    rec.updatedAt = now; rec.status = 'new';
+    const btn = $('#fSubmit'); btn.disabled = true; btn.textContent = 'Sending…';
+    await dbReady;
+    if (db && uid) {
+      try {
+        const ref = db.doc('requests/' + uid);
+        const prev = await ref.get();
+        const p = prev.exists ? prev.data() : null;
+        const history = p ? (p.history || []).concat([{ at: p.updatedAt, modules: p.modules, message: p.message }]).slice(-5) : [];
+        await ref.set(Object.assign({}, rec, { createdAt: p ? p.createdAt : now, history }));
+        return showSent(true, rec);
+      } catch (err) { /* fall through to copy-and-email */ }
+    }
+    showSent(false, rec);
+  });
+  function briefText(r){
+    const mods = (r.modules || []).map(id => (MODULES.find(m => m.id === id) || { name:id }).name).join(', ') || 'none selected';
+    let t = 'impact brAIn request\nName: ' + r.name + '\nOrganisation: ' + r.org + '\nEmail: ' + r.email + '\nStage: ' + r.stage + '\nModules: ' + mods + '\n\nMessage:\n' + (r.message || '(none)') + '\n';
+    if (r.selftest && r.selftest.scores) t += '\nSelf-test (0-4): ' + Object.keys(LEVELS).map(k => LEVELS[k] + ' ' + r.selftest.scores[k]).join('; ') + '\n';
+    if (r.aiDraft && r.aiDraft.model) t += '\nUnchecked IOOI sketch:\n' + JSON.stringify(r.aiDraft.model, null, 2) + '\n';
+    return t;
+  }
+  function copyBox(text){
+    const ta = el('textarea', { readonly:true, 'aria-label':'Request text' }); ta.value = text;
+    const b = el('button', { class:'btn ghost', type:'button' }, 'Copy text');
+    b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch (e) { ta.focus(); ta.select(); b.textContent = 'Selected: press Ctrl+C or ⌘C'; }
+    });
+    return [ta, el('div', { class:'row' }, b)];
+  }
+  function resetForm(){ $('#sent').hidden = true; form.hidden = false; const b = $('#fSubmit'); b.disabled = false; b.textContent = 'Send my request'; }
+  function showSent(stored, r){
+    form.hidden = true;
+    const box = $('#sent'); box.replaceChildren(); box.hidden = false;
+    if (stored) {
+      box.append(el('div', { class:'ok', role:'status' },
+        el('h3', { text:'Thank you, ' + r.name + '. Your request is in.' }),
+        el('p', { text:'I read every request myself and will write to ' + r.email + ' with times for our scoping conversation. If you send another request from this account, it replaces this one.' }),
+        el('div', { class:'row' }, el('button', { class:'btn ghost', type:'button', onclick: resetForm }, 'Edit my request'))));
+    } else {
+      box.append(el('div', { class:'ok fallback', role:'status' },
+        el('h3', { text:'One last step: send it by email' }),
+        el('p', { text:'This version of the page does not store requests. Copy your request and email it to me at either address:' }),
+        el('div', { class:'mail' }, EMAILS.map(m => el('code', { text:m }))),
+        ...copyBox(briefText(r)),
+        el('div', { class:'row' }, el('button', { class:'btn ghost', type:'button', onclick: resetForm }, 'Back to the form'))));
+    }
+  }
+
+  /* ---------- owner inbox ---------- */
+  const STATUSES = ['new', 'conversation booked', 'in progress', 'delivered', 'closed'];
+  function startInbox(){
+    $('#inboxSec').hidden = false;
+    const st = $('#inboxStatus'), listEl = $('#inboxList');
+    db.collection('requests').orderBy('updatedAt', 'desc').limit(100).onSnapshot(snap => {
+      listEl.replaceChildren();
+      st.textContent = snap.empty ? 'No requests yet. They appear here as soon as someone sends the form.' : snap.size + (snap.size === 1 ? ' request' : ' requests') + ', newest first.';
+      snap.docs.forEach(d => {
+        const r = d.data(); if (!r) return;
+        const sel = el('select', { 'aria-label':'Status for ' + (r.org || r.name || 'request') });
+        STATUSES.forEach(s => { const o = el('option', { value:s, text:s }); if (s === r.status) o.selected = true; sel.append(o); });
+        sel.addEventListener('change', () => db.doc('requests/' + d.id).update({ status: sel.value }).catch(() => { st.textContent = 'Could not save the status. Please try again.'; }));
+        const mods = (r.modules || []).map(id => (MODULES.find(m => m.id === id) || { name:id }).name).join(', ') || 'no modules selected';
+        listEl.append(el('article', { class:'req' },
+          el('div', { class:'row' }, el('b', { text:(r.org || '') + ' · ' + (r.name || '') }), el('span', { class:'pill', text:r.stage || '' }), sel),
+          el('p', { class:'meta', text:(r.email || '') + ' · ' + (r.updatedAt ? new Date(r.updatedAt).toLocaleString() : '') }),
+          el('p', { text:'Modules: ' + mods }),
+          r.message ? el('p', { text:r.message }) : null,
+          el('p', { class:'meta', text:(r.selftest ? 'Self-test attached. ' : '') + (r.aiDraft ? 'IOOI sketch attached.' : '') }),
+          el('details', null, el('summary', { text:'Brief for Claude' }), el('div', { class:'fallback' }, ...copyBox(briefText(r))))));
+      });
+    }, () => { st.textContent = 'The inbox could not load. Reload the page to try again.'; });
+  }
+
+  /* ---------- hero network ---------- */
+  const cv = $('#net'), ctx = cv.getContext && cv.getContext('2d');
+  if (ctx) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let W = 0, H = 0, pts = [], running = true, raf = 0;
+    const COLS = ['147,166,255', '95,227,198'];
+    function size(){
+      const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const n = Math.round(Math.min(70, Math.max(24, W * H / 16000)));
+      pts = Array.from({ length:n }, (_, i) => ({ x:Math.random() * W, y:Math.random() * H, vx:(Math.random() - .5) * .25, vy:(Math.random() - .5) * .25, c:COLS[i % 2], r:1 + Math.random() * 1.6 }));
+    }
+    function frame(){
+      ctx.clearRect(0, 0, W, H);
+      for (const p of pts){ p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1; }
+      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++){
+        const a = pts[i], b = pts[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy;
+        if (d2 < 15000){ ctx.strokeStyle = 'rgba(' + a.c + ',' + (0.22 * (1 - d2 / 15000)).toFixed(3) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+      }
+      for (const p of pts){ ctx.fillStyle = 'rgba(' + p.c + ',.85)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+      if (running && !reduce) raf = requestAnimationFrame(frame);
+    }
+    size(); frame();
+    window.addEventListener('resize', () => { size(); if (reduce || !running) frame(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(es => {
+      const vis = es[0].isIntersecting;
+      if (vis && !running){ running = true; if (!reduce) raf = requestAnimationFrame(frame); }
+      if (!vis){ running = false; cancelAnimationFrame(raf); }
+    }).observe(cv);
+  }
+})();
+</script>
+
+</body>
+</html>
